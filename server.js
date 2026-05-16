@@ -6,12 +6,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// JOUW GROQ KEY HIER INVULLEN
-const GROQ_KEY = "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";
+// API KEY KOMT UIT RENDER ENVIRONMENT VARIABLES
+// In Render → Environment → Add Variable:
+// Name: GROQ_API_KEY
+// Value: HIER JOU KEY
+const GROQ_KEY = process.env.GROQ_API_KEY;
 
 app.post("/chat", async (req, res) => {
   try {
     const { ras, vraag } = req.body;
+
+    if (!GROQ_KEY) {
+      return res.status(500).json({ error: "API key ontbreekt op de server." });
+    }
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -40,6 +47,11 @@ Houd rekening met het gekozen ras/soort: ${ras}.
     });
 
     const data = await response.json();
+
+    if (!data.choices) {
+      return res.status(500).json({ error: "Ongeldig antwoord van Groq API", raw: data });
+    }
+
     res.json({ antwoord: data.choices[0].message.content });
 
   } catch (err) {
