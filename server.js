@@ -1,0 +1,52 @@
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// JOUW GROQ KEY HIER INVULLEN
+const GROQ_KEY = "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";
+
+app.post("/chat", async (req, res) => {
+  try {
+    const { ras, vraag } = req.body;
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + GROQ_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: `
+Je bent een vriendelijke advies-assistent.
+Je geeft tips, info, advies en productlinks.
+Houd rekening met het gekozen ras/soort: ${ras}.
+            `
+          },
+          {
+            role: "user",
+            content: vraag
+          }
+        ],
+        temperature: 0.6
+      })
+    });
+
+    const data = await response.json();
+    res.json({ antwoord: data.choices[0].message.content });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Render gebruikt een dynamische poort
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server draait op poort " + PORT));
