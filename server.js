@@ -27,7 +27,8 @@ app.post("/chat", async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "model: "llama3-70b-8192",
+",
         messages: [
           {
             role: "system",
